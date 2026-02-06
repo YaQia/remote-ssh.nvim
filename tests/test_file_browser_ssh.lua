@@ -1,55 +1,6 @@
 -- Test file browser SSH functionality
 local test = require("tests.init")
-
--- Mock ssh_utils functions for testing
-local ssh_utils = {}
-
-ssh_utils.is_localhost = function(host)
-    return host == "localhost" or host == "127.0.0.1" or host == "::1"
-end
-
-ssh_utils.build_ssh_cmd = function(host, command)
-    local ssh_args = { "ssh" }
-
-    -- Add IPv4 preference for localhost connections to avoid IPv6 issues
-    if ssh_utils.is_localhost(host) then
-        table.insert(ssh_args, "-4")
-    end
-
-    table.insert(ssh_args, host)
-    table.insert(ssh_args, command)
-
-    return ssh_args
-end
-
-ssh_utils.build_scp_cmd = function(source, destination, options)
-    local scp_args = { "scp" }
-
-    -- Add standard options
-    if options then
-        for _, opt in ipairs(options) do
-            table.insert(scp_args, opt)
-        end
-    end
-
-    -- Extract host from source or destination to check for localhost
-    local host = nil
-    if source:match("^[^:]+:") then
-        host = source:match("^([^:]+):")
-    elseif destination:match("^[^:]+:") then
-        host = destination:match("^([^:]+):")
-    end
-
-    -- Add IPv4 preference for localhost connections
-    if host and ssh_utils.is_localhost(host) then
-        table.insert(scp_args, "-4")
-    end
-
-    table.insert(scp_args, source)
-    table.insert(scp_args, destination)
-
-    return scp_args
-end
+local ssh_utils = require("async-remote-write.ssh_utils")
 
 test.describe("File Browser SSH Commands", function()
     test.it("should build SSH commands correctly for localhost", function()
@@ -153,19 +104,8 @@ test.describe("File Browser SSH Commands", function()
     test.it("should construct directory listing command correctly", function()
         local path = "/home/user/test/"
 
-        -- Build the SSH command using the new sh -c format
-        local sh_script = [[
-cd "$1" && find . -maxdepth 1 | sort | while IFS= read -r f; do
-    if [ "$f" != "." ]; then
-        if [ -d "$f" ]; then
-            echo "d ${f#./}"
-        else
-            echo "f ${f#./}"
-        fi
-    fi
-done
-]]
-        local ssh_cmd = string.format("sh -c %s _ %s", vim.fn.shellescape(sh_script), vim.fn.shellescape(path))
+        -- Build the SSH command using ssh_utils
+        local ssh_cmd = ssh_utils.build_list_dir_cmd(path)
 
         test.assert.contains(ssh_cmd, "sh -c", "Command should use sh -c")
         test.assert.contains(ssh_cmd, "find", "Command should contain find")
