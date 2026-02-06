@@ -32,11 +32,11 @@ test.describe("SSH Command Escaping", function()
         local path = "/home/user/test's dir/"
         local ssh_cmd = build_sh_command(path)
 
-        -- Verify command doesn't break with quotes
+        -- Verify command structure
         test.assert.contains(ssh_cmd, "sh -c", "SSH command should use sh -c")
-        test.assert.truthy(#ssh_cmd > 50, "SSH command should be properly constructed")
-        -- Path is passed as separate argument, so quotes don't break the script
-        test.assert.contains(ssh_cmd, "test", "SSH command should contain part of the path")
+        -- Verify the path is properly shell-escaped and passed as argument
+        local escaped_path = vim.fn.shellescape(path)
+        test.assert.contains(ssh_cmd, escaped_path, "SSH command should contain properly escaped path")
     end)
 
     test.it("should properly escape paths with special characters", function()
