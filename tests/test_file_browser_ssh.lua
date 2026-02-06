@@ -152,14 +152,22 @@ test.describe("File Browser SSH Commands", function()
 
     test.it("should construct directory listing command correctly", function()
         local path = "/home/user/test/"
-        local escaped_path = vim.fn.shellescape(path)
 
-        local ssh_cmd = string.format(
-            'cd %s && find . -maxdepth 1 | sort | while read f; do if [ "$f" != "." ]; then if [ -d "$f" ]; then echo "d ${f#./}"; else echo "f ${f#./}"; fi; fi; done',
-            escaped_path
-        )
+        -- Build the SSH command using the new sh -c format
+        local sh_script = [[
+cd "$1" && find . -maxdepth 1 | sort | while read f; do
+    if [ "$f" != "." ]; then
+        if [ -d "$f" ]; then
+            echo "d ${f#./}"
+        else
+            echo "f ${f#./}"
+        fi
+    fi
+done
+]]
+        local ssh_cmd = string.format("sh -c %s _ %s", vim.fn.shellescape(sh_script), vim.fn.shellescape(path))
 
-        test.assert.contains(ssh_cmd, "cd", "Command should contain cd")
+        test.assert.contains(ssh_cmd, "sh -c", "Command should use sh -c")
         test.assert.contains(ssh_cmd, "find", "Command should contain find")
         test.assert.contains(ssh_cmd, "-maxdepth 1", "Command should contain maxdepth limit")
         test.assert.contains(ssh_cmd, "sort", "Command should contain sort")
