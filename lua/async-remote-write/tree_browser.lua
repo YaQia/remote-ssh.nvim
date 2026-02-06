@@ -408,8 +408,9 @@ local function load_directory(url, callback)
 
     -- Use bash -c to ensure POSIX-compatible shell syntax works on all systems
     -- (e.g., fish shell doesn't support ${var#pattern} syntax)
+    -- Pass path as an argument to avoid quoting issues with special characters
     local ssh_cmd = string.format(
-        [[bash -c 'cd %s && find . -maxdepth 1 | sort | while read f; do if [ "$f" != "." ]; then if [ -d "$f" ]; then echo "d ${f#./}"; else echo "f ${f#./}"; fi; fi; done']],
+        [[bash -c 'cd "$1" && find . -maxdepth 1 | sort | while read f; do if [ "$f" != "." ]; then if [ -d "$f" ]; then echo "d ${f#./}"; else echo "f ${f#./}"; fi; fi; done' _ %s]],
         vim.fn.shellescape(path)
     )
 
