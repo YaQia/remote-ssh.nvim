@@ -155,7 +155,7 @@ test.describe("File Browser SSH Commands", function()
 
         -- Build the SSH command using the new sh -c format
         local sh_script = [[
-cd "$1" && find . -maxdepth 1 | sort | while read f; do
+cd "$1" && find . -maxdepth 1 | sort | while IFS= read -r f; do
     if [ "$f" != "." ]; then
         if [ -d "$f" ]; then
             echo "d ${f#./}"
@@ -171,7 +171,7 @@ done
         test.assert.contains(ssh_cmd, "find", "Command should contain find")
         test.assert.contains(ssh_cmd, "-maxdepth 1", "Command should contain maxdepth limit")
         test.assert.contains(ssh_cmd, "sort", "Command should contain sort")
-        test.assert.contains(ssh_cmd, "while read", "Command should contain while loop")
+        test.assert.contains(ssh_cmd, "while IFS= read -r", "Command should contain while loop")
         test.assert.contains(ssh_cmd, 'echo "d', "Command should output directory marker")
         test.assert.contains(ssh_cmd, 'echo "f', "Command should output file marker")
     end)

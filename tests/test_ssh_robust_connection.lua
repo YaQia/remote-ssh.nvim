@@ -123,7 +123,7 @@ test.describe("SSH Robust Connection Options", function()
 
         -- Build the SSH command using the new sh -c format
         local sh_script = [[
-cd "$1" && find . -maxdepth 1 | sort | while read f; do
+cd "$1" && find . -maxdepth 1 | sort | while IFS= read -r f; do
     if [ "$f" != "." ]; then
         if [ -d "$f" ]; then
             echo "d ${f#./}"

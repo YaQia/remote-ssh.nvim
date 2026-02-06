@@ -4,7 +4,7 @@ local test = require("tests.init")
 -- Helper function to build SSH command (mirrors the actual implementation)
 local function build_sh_command(path)
     local sh_script = [[
-cd "$1" && find . -maxdepth 1 | sort | while read f; do
+cd "$1" && find . -maxdepth 1 | sort | while IFS= read -r f; do
     if [ "$f" != "." ]; then
         if [ -d "$f" ]; then
             echo "d ${f#./}"
@@ -56,7 +56,7 @@ test.describe("SSH Command Escaping", function()
         test.assert.contains(ssh_cmd, "/home/user/simple", "SSH command should contain the path")
         test.assert.contains(ssh_cmd, "find . -maxdepth 1", "SSH command should contain find with maxdepth")
         test.assert.contains(ssh_cmd, "sort", "SSH command should contain sort")
-        test.assert.contains(ssh_cmd, "while read f", "SSH command should contain while loop")
+        test.assert.contains(ssh_cmd, "while IFS= read -r f", "SSH command should contain while loop")
     end)
 
     test.it("should pass path as argument to avoid quoting issues", function()

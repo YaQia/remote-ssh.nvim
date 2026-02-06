@@ -410,7 +410,7 @@ local function load_directory(url, callback)
     -- (e.g., fish shell doesn't support ${var#pattern} syntax)
     -- Pass path as argument ($1) to avoid quoting issues with special characters
     local sh_script = [[
-cd "$1" && find . -maxdepth 1 | sort | while read f; do
+cd "$1" && find . -maxdepth 1 | sort | while IFS= read -r f; do
     if [ "$f" != "." ]; then
         if [ -d "$f" ]; then
             echo "d ${f#./}"

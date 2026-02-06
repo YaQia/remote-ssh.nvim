@@ -4,7 +4,7 @@ local test = require("tests.init")
 -- Helper function to build SSH command (mirrors the actual implementation)
 local function build_sh_script()
     return [[
-cd "$1" && find . -maxdepth 1 | sort | while read f; do
+cd "$1" && find . -maxdepth 1 | sort | while IFS= read -r f; do
     if [ "$f" != "." ]; then
         if [ -d "$f" ]; then
             echo "d ${f#./}"

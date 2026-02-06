@@ -356,7 +356,7 @@ function M.warm_single_directory(dir_url, job, callback)
     -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
     -- Pass path as argument ($1) to avoid quoting issues with special characters
     local sh_script = [[
-cd "$1" 2>/dev/null && find . -maxdepth 1 -not -name "." | while read f; do
+cd "$1" 2>/dev/null && find . -maxdepth 1 -not -name "." | while IFS= read -r f; do
     if [ -d "$f" ]; then
         echo "d $f"
     else
@@ -565,7 +565,7 @@ function M.browse_remote_directory(url, reset_selections)
     -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
     -- Pass path as argument ($1) to avoid quoting issues with special characters
     local sh_script = [[
-cd "$1" && find . -maxdepth 1 | sort | while read f; do
+cd "$1" && find . -maxdepth 1 | sort | while IFS= read -r f; do
     if [ "$f" != "." ]; then
         if [ -d "$f" ]; then
             echo "d ${f#./}"
@@ -1354,7 +1354,7 @@ function M.browse_remote_level_based(url, reset_selections)
     -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
     -- Pass path as argument ($1) to avoid quoting issues with special characters
     local sh_script = [[
-cd "$1" 2>/dev/null && find . -maxdepth 1 -not -name "." | while read f; do
+cd "$1" 2>/dev/null && find . -maxdepth 1 -not -name "." | while IFS= read -r f; do
     if [ -d "$f" ]; then
         echo "d $f"
     else
@@ -1596,7 +1596,7 @@ function M.load_directory_for_tree(url, depth, callback)
     -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
     -- Pass path as argument ($1) to avoid quoting issues with special characters
     local sh_script = [[
-cd "$1" && find . -maxdepth 1 | sort | while read f; do
+cd "$1" && find . -maxdepth 1 | sort | while IFS= read -r f; do
     if [ "$f" != "." ]; then
         if [ -d "$f" ]; then
             echo "d ${f#./}"
@@ -4031,7 +4031,7 @@ function M.load_directory_v2(url, callback)
     -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
     -- Pass path as argument ($1) to avoid quoting issues with special characters
     local sh_script = [[
-cd "$1" && find . -maxdepth 1 | sort | while read f; do
+cd "$1" && find . -maxdepth 1 | sort | while IFS= read -r f; do
     if [ "$f" != "." ]; then
         if [ -d "$f" ]; then
             echo "d ${f#./}"
