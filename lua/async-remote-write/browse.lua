@@ -352,19 +352,8 @@ function M.warm_single_directory(dir_url, job, callback)
         path = path .. "/"
     end
 
-    -- Use same command as level-based browser
-    -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
-    -- Pass path as argument ($1) to avoid quoting issues with special characters
-    local sh_script = [[
-cd "$1" 2>/dev/null && find . -maxdepth 1 -not -name "." | while IFS= read -r f; do
-    if [ -d "$f" ]; then
-        echo "d $f"
-    else
-        echo "f $f"
-    fi
-done | sort
-]]
-    local sh_cmd = string.format("sh -c %s _ %s", vim.fn.shellescape(sh_script), vim.fn.shellescape(path))
+    -- Use ssh_utils helper to build directory listing command
+    local sh_cmd = ssh_utils.build_list_dir_cmd(path, { sorted = false })
 
     local cmd = { "ssh", host, sh_cmd }
     local output = {}
@@ -562,20 +551,8 @@ function M.browse_remote_directory(url, reset_selections)
         return
     end
 
-    -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
-    -- Pass path as argument ($1) to avoid quoting issues with special characters
-    local sh_script = [[
-cd "$1" && find . -maxdepth 1 | sort | while IFS= read -r f; do
-    if [ "$f" != "." ]; then
-        if [ -d "$f" ]; then
-            echo "d ${f#./}"
-        else
-            echo "f ${f#./}"
-        fi
-    fi
-done
-]]
-    local sh_cmd = string.format("sh -c %s _ %s", vim.fn.shellescape(sh_script), vim.fn.shellescape(path))
+    -- Use ssh_utils helper to build directory listing command
+    local sh_cmd = ssh_utils.build_list_dir_cmd(path)
 
     local cmd = { "ssh", host, sh_cmd }
 
@@ -1350,19 +1327,8 @@ function M.browse_remote_level_based(url, reset_selections)
         return
     end
 
-    -- Use maxdepth 1 to get ONLY immediate children
-    -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
-    -- Pass path as argument ($1) to avoid quoting issues with special characters
-    local sh_script = [[
-cd "$1" 2>/dev/null && find . -maxdepth 1 -not -name "." | while IFS= read -r f; do
-    if [ -d "$f" ]; then
-        echo "d $f"
-    else
-        echo "f $f"
-    fi
-done | sort
-]]
-    local sh_cmd = string.format("sh -c %s _ %s", vim.fn.shellescape(sh_script), vim.fn.shellescape(path))
+    -- Use ssh_utils helper to build directory listing command
+    local sh_cmd = ssh_utils.build_list_dir_cmd(path, { sorted = false })
 
     local cmd = { "ssh", host, sh_cmd }
     local output = {}
@@ -1592,21 +1558,8 @@ function M.load_directory_for_tree(url, depth, callback)
         path = path .. "/"
     end
 
-    -- Build the SSH command
-    -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
-    -- Pass path as argument ($1) to avoid quoting issues with special characters
-    local sh_script = [[
-cd "$1" && find . -maxdepth 1 | sort | while IFS= read -r f; do
-    if [ "$f" != "." ]; then
-        if [ -d "$f" ]; then
-            echo "d ${f#./}"
-        else
-            echo "f ${f#./}"
-        fi
-    fi
-done
-]]
-    local ssh_cmd = string.format("sh -c %s _ %s", vim.fn.shellescape(sh_script), vim.fn.shellescape(path))
+    -- Use ssh_utils helper to build directory listing command
+    local ssh_cmd = ssh_utils.build_list_dir_cmd(path)
 
     local output = {}
     local stderr_output = {}
@@ -4028,20 +3981,8 @@ function M.load_directory_v2(url, callback)
         path = path .. "/"
     end
 
-    -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
-    -- Pass path as argument ($1) to avoid quoting issues with special characters
-    local sh_script = [[
-cd "$1" && find . -maxdepth 1 | sort | while IFS= read -r f; do
-    if [ "$f" != "." ]; then
-        if [ -d "$f" ]; then
-            echo "d ${f#./}"
-        else
-            echo "f ${f#./}"
-        fi
-    fi
-done
-]]
-    local ssh_cmd = string.format("sh -c %s _ %s", vim.fn.shellescape(sh_script), vim.fn.shellescape(path))
+    -- Use ssh_utils helper to build directory listing command
+    local ssh_cmd = ssh_utils.build_list_dir_cmd(path)
 
     local output = {}
     local stderr_output = {}
