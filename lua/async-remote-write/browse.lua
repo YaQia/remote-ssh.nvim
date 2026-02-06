@@ -552,7 +552,7 @@ function M.browse_remote_directory(url, reset_selections)
     end
 
     -- Use ssh_utils helper to build directory listing command
-    local sh_cmd = ssh_utils.build_list_dir_cmd(path)
+    local sh_cmd = ssh_utils.build_list_dir_cmd(path, { sorted = false })
 
     local cmd = { "ssh", host, sh_cmd }
 
@@ -1559,7 +1559,7 @@ function M.load_directory_for_tree(url, depth, callback)
     end
 
     -- Use ssh_utils helper to build directory listing command
-    local ssh_cmd = ssh_utils.build_list_dir_cmd(path)
+    local ssh_cmd = ssh_utils.build_list_dir_cmd(path, { sorted = false })
 
     local output = {}
     local stderr_output = {}
@@ -3982,7 +3982,7 @@ function M.load_directory_v2(url, callback)
     end
 
     -- Use ssh_utils helper to build directory listing command
-    local ssh_cmd = ssh_utils.build_list_dir_cmd(path)
+    local ssh_cmd = ssh_utils.build_list_dir_cmd(path, { sorted = false })
 
     local output = {}
     local stderr_output = {}
