@@ -353,12 +353,20 @@ function M.warm_single_directory(dir_url, job, callback)
     end
 
     -- Use same command as level-based browser
-    -- Wrap in bash -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
-    -- Pass path as an argument to avoid quoting issues with special characters
-    local bash_cmd =
-        [[bash -c 'cd "$1" 2>/dev/null && find . -maxdepth 1 -not -name "." | while read f; do if [ -d "$f" ]; then echo "d $f"; else echo "f $f"; fi; done | sort' _ %s]]
+    -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
+    -- Pass path as argument ($1) to avoid quoting issues with special characters
+    local sh_script = [[
+cd "$1" 2>/dev/null && find . -maxdepth 1 -not -name "." | while read f; do
+    if [ -d "$f" ]; then
+        echo "d $f"
+    else
+        echo "f $f"
+    fi
+done | sort
+]]
+    local sh_cmd = string.format("sh -c %s _ %s", vim.fn.shellescape(sh_script), vim.fn.shellescape(path))
 
-    local cmd = { "ssh", host, string.format(bash_cmd, vim.fn.shellescape(path)) }
+    local cmd = { "ssh", host, sh_cmd }
     local output = {}
 
     local job_id = vim.fn.jobstart(cmd, {
@@ -554,13 +562,22 @@ function M.browse_remote_directory(url, reset_selections)
         return
     end
 
-    -- Use a bash script that's compatible with most systems
-    -- Wrap in bash -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
-    -- Pass path as an argument to avoid quoting issues with special characters
-    local bash_cmd =
-        [[bash -c 'cd "$1" && find . -maxdepth 1 | sort | while read f; do if [ "$f" != "." ]; then if [ -d "$f" ]; then echo "d ${f#./}"; else echo "f ${f#./}"; fi; fi; done' _ %s]]
+    -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
+    -- Pass path as argument ($1) to avoid quoting issues with special characters
+    local sh_script = [[
+cd "$1" && find . -maxdepth 1 | sort | while read f; do
+    if [ "$f" != "." ]; then
+        if [ -d "$f" ]; then
+            echo "d ${f#./}"
+        else
+            echo "f ${f#./}"
+        fi
+    fi
+done
+]]
+    local sh_cmd = string.format("sh -c %s _ %s", vim.fn.shellescape(sh_script), vim.fn.shellescape(path))
 
-    local cmd = { "ssh", host, string.format(bash_cmd, vim.fn.shellescape(path)) }
+    local cmd = { "ssh", host, sh_cmd }
 
     -- Create job to execute command
     local output = {}
@@ -1334,13 +1351,20 @@ function M.browse_remote_level_based(url, reset_selections)
     end
 
     -- Use maxdepth 1 to get ONLY immediate children
-    -- Wrap in bash -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
-    -- Wrap in bash -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
-    -- Pass path as an argument to avoid quoting issues with special characters
-    local bash_cmd =
-        [[bash -c 'cd "$1" 2>/dev/null && find . -maxdepth 1 -not -name "." | while read f; do if [ -d "$f" ]; then echo "d $f"; else echo "f $f"; fi; done | sort' _ %s]]
+    -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
+    -- Pass path as argument ($1) to avoid quoting issues with special characters
+    local sh_script = [[
+cd "$1" 2>/dev/null && find . -maxdepth 1 -not -name "." | while read f; do
+    if [ -d "$f" ]; then
+        echo "d $f"
+    else
+        echo "f $f"
+    fi
+done | sort
+]]
+    local sh_cmd = string.format("sh -c %s _ %s", vim.fn.shellescape(sh_script), vim.fn.shellescape(path))
 
-    local cmd = { "ssh", host, string.format(bash_cmd, vim.fn.shellescape(path)) }
+    local cmd = { "ssh", host, sh_cmd }
     local output = {}
     local stderr_output = {}
 
@@ -1569,12 +1593,20 @@ function M.load_directory_for_tree(url, depth, callback)
     end
 
     -- Build the SSH command
-    -- Wrap in bash -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
-    -- Pass path as an argument to avoid quoting issues with special characters
-    local ssh_cmd = string.format(
-        [[bash -c 'cd "$1" && find . -maxdepth 1 | sort | while read f; do if [ "$f" != "." ]; then if [ -d "$f" ]; then echo "d ${f#./}"; else echo "f ${f#./}"; fi; fi; done' _ %s]],
-        vim.fn.shellescape(path)
-    )
+    -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
+    -- Pass path as argument ($1) to avoid quoting issues with special characters
+    local sh_script = [[
+cd "$1" && find . -maxdepth 1 | sort | while read f; do
+    if [ "$f" != "." ]; then
+        if [ -d "$f" ]; then
+            echo "d ${f#./}"
+        else
+            echo "f ${f#./}"
+        fi
+    fi
+done
+]]
+    local ssh_cmd = string.format("sh -c %s _ %s", vim.fn.shellescape(sh_script), vim.fn.shellescape(path))
 
     local output = {}
     local stderr_output = {}
@@ -3996,12 +4028,20 @@ function M.load_directory_v2(url, callback)
         path = path .. "/"
     end
 
-    -- Wrap in bash -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
-    -- Pass path as an argument to avoid quoting issues with special characters
-    local ssh_cmd = string.format(
-        [[bash -c 'cd "$1" && find . -maxdepth 1 | sort | while read f; do if [ "$f" != "." ]; then if [ -d "$f" ]; then echo "d ${f#./}"; else echo "f ${f#./}"; fi; fi; done' _ %s]],
-        vim.fn.shellescape(path)
-    )
+    -- Use sh -c to ensure POSIX-compatible syntax works on all systems (e.g., fish shell)
+    -- Pass path as argument ($1) to avoid quoting issues with special characters
+    local sh_script = [[
+cd "$1" && find . -maxdepth 1 | sort | while read f; do
+    if [ "$f" != "." ]; then
+        if [ -d "$f" ]; then
+            echo "d ${f#./}"
+        else
+            echo "f ${f#./}"
+        fi
+    fi
+done
+]]
+    local ssh_cmd = string.format("sh -c %s _ %s", vim.fn.shellescape(sh_script), vim.fn.shellescape(path))
 
     local output = {}
     local stderr_output = {}

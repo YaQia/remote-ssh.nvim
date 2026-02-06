@@ -406,13 +406,21 @@ local function load_directory(url, callback)
         path = path .. "/"
     end
 
-    -- Use bash -c to ensure POSIX-compatible shell syntax works on all systems
+    -- Use sh -c to ensure POSIX-compatible shell syntax works on all systems
     -- (e.g., fish shell doesn't support ${var#pattern} syntax)
-    -- Pass path as an argument to avoid quoting issues with special characters
-    local ssh_cmd = string.format(
-        [[bash -c 'cd "$1" && find . -maxdepth 1 | sort | while read f; do if [ "$f" != "." ]; then if [ -d "$f" ]; then echo "d ${f#./}"; else echo "f ${f#./}"; fi; fi; done' _ %s]],
-        vim.fn.shellescape(path)
-    )
+    -- Pass path as argument ($1) to avoid quoting issues with special characters
+    local sh_script = [[
+cd "$1" && find . -maxdepth 1 | sort | while read f; do
+    if [ "$f" != "." ]; then
+        if [ -d "$f" ]; then
+            echo "d ${f#./}"
+        else
+            echo "f ${f#./}"
+        fi
+    fi
+done
+]]
+    local ssh_cmd = string.format("sh -c %s _ %s", vim.fn.shellescape(sh_script), vim.fn.shellescape(path))
 
     local output = {}
     local stderr_output = {}
